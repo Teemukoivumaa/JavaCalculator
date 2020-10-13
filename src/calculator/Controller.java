@@ -56,45 +56,59 @@ public class Controller {
         if (text.length() > 0) {
             List<String> calculation = new ArrayList<>();
             List<String> inputCalculation = Arrays.asList(input.getText().trim().split(""));
+
+            System.out.println();
+            System.out.println(inputCalculation);
+
             Boolean isCalculationOk = false;
             String prevValue = "", mark = "";
+            boolean wasNumber;
             int numbers = 0;
 
-            if (inputCalculation.size() > 2) {
+            if (inputCalculation.size() > 2) { // if size is below 2 there isn't 2 numbers
                 isCalculationOk = true;
                 for (int i = 0; i < inputCalculation.size(); i++) { // get calculation to format [-32, +, 30]
                     boolean isNumber = inputCalculation.get(i).matches("[-+]?\\d*\\.?\\d+"); // check if contains numbers
+                    wasNumber = prevValue.matches("[-+]?\\d*\\.?\\d+"); // check if prevValue was number
                     String newValue = inputCalculation.get(i);
 
                     if (isNumber) {
-                        numbers++; // count numbers
+                        if (!wasNumber) { // if prev wasn't number dis is new number
+                            numbers++; // count numbers
+                        }
                         mark = mark + newValue;
                         prevValue = newValue;
                     } else {
-                        if (newValue.equals(".") && !prevValue.equals(".")) {
+                        if (newValue.equals(".")) {
                             mark = mark + newValue;
                             prevValue = newValue;
                         } else if (newValue.equals("-") && mark.equals("")) { // if mark is empty next value is negative
                             mark = newValue;
                             prevValue = newValue;
                         } else {
-                            if (prevValue.equals("-") || prevValue.equals("+") || prevValue.equals("/") || prevValue.equals("*")) {
-                                i = inputCalculation.size();
+                            if (prevValue.equals("-") || prevValue.equals("+") || prevValue.equals("/") || prevValue.equals("*") || prevValue.equals(".")) {
+                                i = inputCalculation.size(); // two operators back to back is an error
                                 isCalculationOk = false;
                             } else {
                                 calculation.add(mark); // add numbers
                                 mark = newValue;
                                 calculation.add(mark); // add +,-,*,/
                                 mark = "";
+                                prevValue = newValue;
                             }
                         }
                     }
+                }
+
+                if (!mark.equals("")){  // need to add last one here because if last mark was a number it wasn't added
+                    calculation.add(mark);
+                } else {
+                    isCalculationOk = false;
                 }
             }
 
             if (numbers > 1) {
                 if (isCalculationOk) {
-                    calculation.add(mark); // need to add last one here for some reason
                     Calculation(calculation);
                 } else {
                     System.out.println("Invalid syntax. Check calculation");
@@ -128,48 +142,44 @@ public class Controller {
                     }
                 }
 
-                String wantedOperator;
-                String wantedSecondOperator;
-                Locations locations = new Locations();
+                String mult = "*"; String div = "/"; String plus = "+"; String min = "-";
 
-                if (operators.contains("*") || operators.contains("/")) {
-                    wantedOperator = "*"; wantedSecondOperator = "/";
+                if (operators.contains(mult) || operators.contains(div)) {
                     for (int i=0; i < operators.size(); i++) {
                         String operator = operators.get(i);
                         operatorLocation = Integer.parseInt(operatorLocations.get(i)); // get operator location
-                        if (operator.equals(wantedOperator)) { // multiplication operation
-                            locations.GetLocations(calculation, operatorLocation); // get value locations
+                        if (operator.equals(mult)) { // multiplication operation
+                            Locations.GetLocations(calculation, operatorLocation); // get value locations
 
-                            result = BasicCalculation(locations.prevValue, locations.nextValue, operator); // calculate
-                            calculation = CreateNewCalculation(calculation, locations.prevValueLocation, operatorLocation, locations.nextValueLocation, result); // make new calculation
+                            result = BasicCalculation(Locations.prevValue, Locations.nextValue, operator); // calculate
+                            calculation = CreateNewCalculation(calculation, Locations.prevValueLocation, operatorLocation, Locations.nextValueLocation, result); // make new calculation
 
                             i = operators.size(); // exits for loop
-                        } else if (operator.equals(wantedSecondOperator)) { // division operation
-                            locations.GetLocations(calculation, operatorLocation); // get value locations
+                        } else if (operator.equals(div)) { // division operation
+                            Locations.GetLocations(calculation, operatorLocation); // get value locations
 
-                            result = BasicCalculation(locations.prevValue, locations.nextValue, operator); // calculate
-                            calculation = CreateNewCalculation(calculation, locations.prevValueLocation, operatorLocation, locations.nextValueLocation, result); // make new calculation
+                            result = BasicCalculation(Locations.prevValue, Locations.nextValue, operator); // calculate
+                            calculation = CreateNewCalculation(calculation, Locations.prevValueLocation, operatorLocation, Locations.nextValueLocation, result); // make new calculation
 
                             i = operators.size(); // exits for loop
                         }
                     }
-                } else if (operators.contains("+") || operators.contains("-")) {
-                    wantedOperator = "+"; wantedSecondOperator = "-";
+                } else if (operators.contains(plus) || operators.contains(min)) {
                     for (int i=0; i < operators.size(); i++) {
                         String operator = operators.get(i);
                         operatorLocation = Integer.parseInt(operatorLocations.get(i)); // get operator location
-                        if (operator.equals(wantedOperator)) { // plus operation
-                            locations.GetLocations(calculation, operatorLocation); // get value locations
+                        if (operator.equals(plus)) { // plus operation
+                            Locations.GetLocations(calculation, operatorLocation); // get value locations
 
-                            result = BasicCalculation(locations.prevValue, locations.nextValue, operator); // calculate
-                            calculation = CreateNewCalculation(calculation, locations.prevValueLocation, operatorLocation, locations.nextValueLocation, result); // make new calculation
+                            result = BasicCalculation(Locations.prevValue, Locations.nextValue, operator); // calculate
+                            calculation = CreateNewCalculation(calculation, Locations.prevValueLocation, operatorLocation, Locations.nextValueLocation, result); // make new calculation
 
                             i = operators.size(); // exits for loop
-                        } else if (operator.equals(wantedSecondOperator)) { // minus operation
-                            locations.GetLocations(calculation, operatorLocation); // get value locations
+                        } else if (operator.equals(min)) { // minus operation
+                            Locations.GetLocations(calculation, operatorLocation); // get value locations
 
-                            result = BasicCalculation(locations.prevValue, locations.nextValue, operator); // calculate
-                            calculation = CreateNewCalculation(calculation, locations.prevValueLocation, operatorLocation, locations.nextValueLocation, result); // make new calculation
+                            result = BasicCalculation(Locations.prevValue, Locations.nextValue, operator); // calculate
+                            calculation = CreateNewCalculation(calculation, Locations.prevValueLocation, operatorLocation, Locations.nextValueLocation, result); // make new calculation
 
                             i = operators.size(); // exits for loop
                         }
